@@ -1,0 +1,19 @@
+[tool.poetry]
+name = "life_insurance_agent_helper"
+version = "0.1.0"
+description = ""
+authors = ["Brian Yang <anan0329@yahoo.com.tw>"]
+
+[tool.poetry.dependencies]
+python = "3.11.9"
+PyYAML = "^6.0.1"
+loguru = "^0.7.2"
+
+[tool.poetry.dev-dependencies]
+
+[tool.poetry.group.dev.dependencies]
+ipykernel = "^6.29.5"
+
+[build-system]
+requires = ["poetry-core>=1.0.0"]
+build-backend = "poetry.core.masonry.api"
