@@ -1,5 +1,5 @@
 [tool.poetry]
-name = "life_insurance_agent_helper"
+name = "agent-chat-sim"
 version = "0.1.0"
 description = ""
 authors = ["Brian Yang <anan0329@yahoo.com.tw>"]
