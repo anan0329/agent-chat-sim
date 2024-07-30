@@ -6,3 +6,5 @@ log/*
 tutorials/*
 *.sql
 **/*_.png
+src/app.py
+.vscode/*
