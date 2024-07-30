@@ -20,4 +20,29 @@ handlers:
             {module}:{function}:{line} - {message}
 
 DB:
-    path: ../db/CustomerInfo.db
+    sqlite: ../db/CustomerInfo.db
+
+general:
+    model_factory: openai
+    model: gpt-4o-mini
+    # model_factory: ollama
+    # model: gemma2
+    temperature: 0
+
+vanna:
+    path: ../db/chroma
+    model_factory: openai
+    model: gpt-4o-mini
+    # model_factory: ollama
+    # model: gemma2 # phi3
+    embedding_function: BAAI/bge-large-zh-v1.5
+    n_results_sql: 3
+    n_results_documentation: 5
+    n_results_ddl: 3
+
+stt:
+    model_factory: openai-api
+    model: whisper-1
+    # model_factory: local-openai
+    # model: base
+    # async: False

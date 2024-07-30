@@ -3,3 +3,6 @@ db/*
 log/*
 **/__pycache__
 **/*.ipynb
+tutorials/*
+*.sql
+**/*_.png
