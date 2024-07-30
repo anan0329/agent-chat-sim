@@ -8,11 +8,27 @@ authors = ["Brian Yang <anan0329@yahoo.com.tw>"]
 python = "3.11.9"
 PyYAML = "^6.0.1"
 loguru = "^0.7.2"
-
-[tool.poetry.dev-dependencies]
+langchain = "^0.2.7"
+langchain-community = "^0.2.7"
+kaleido = "0.2.1"
+vanna = {extras = ["chromadb", "ollama"], version = "^0.6.3"}
+chainlit = "^1.1.306"
+sentence-transformers = "^3.0.1"
+langchain-chroma = "^0.1.2"
+langchain-huggingface = "^0.0.3"
+langchainhub = "^0.1.20"
+openai-whisper = "^20231117"
+imageio = {extras = ["ffmpeg"], version = "^2.34.2"}
+ffmpeg = "^1.4"
+openai = "^1.37.0"
+langchain-openai = "^0.1.17"
 
 [tool.poetry.group.dev.dependencies]
 ipykernel = "^6.29.5"
+pytest = "^8.2.2"
+bs4 = "^0.0.2"
+pydub = "^0.25.1"
+opencv-python = "^4.10.0.84"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -8,3 +8,4 @@ tutorials/*
 **/*_.png
 src/app.py
 .vscode/*
+*.todo
