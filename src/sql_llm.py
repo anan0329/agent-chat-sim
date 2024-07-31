@@ -1,3 +1,4 @@
+import re
 import sqlite3
 from typing import Any, Dict, Iterator, List, Optional
 
@@ -74,6 +75,7 @@ class OpenaiChromaVanna(ChromaDB_VectorStore, OpenAI_Chat):
                 "4. Please use the most relevant table(s). \n"
                 "5. If the question has been asked and answered before, please repeat the answer exactly as it was given before. \n"
                 "6. Column names are traditional chinese (zh-TW), neither simplified chinese nor english is allowed. \n"
+                "7. If user mentions 王先生, then the user is talking about 王東明 \n"
             )
         else:
             initial_prompt += (
@@ -81,9 +83,11 @@ class OpenaiChromaVanna(ChromaDB_VectorStore, OpenAI_Chat):
                 "1. generate result based on the information related. \n"
                 "2. If the question has been asked and answered before, please repeat the answer exactly as it was given before. \n"
                 "3. Response only in traditional chinese (zh-TW). \n"
+                "4. If user mentions 王先生, then the user is talking about 王東明 \n"
             )
-        if "mpos" in question.lower():
-            "4. Add '好的，已幫您紀錄完成' after the answer if and only if the question mentioned 'mPOS'."
+
+        if any(text for text in ["mpos", "bbs"] if text in question.lower()):
+            initial_prompt += "5. Add '好的，已幫您紀錄完成' after the answer if and only if the question mentioned 'mPOS'."
 
         message_log = [self.system_message(initial_prompt)]
 
@@ -182,23 +186,35 @@ class OpenaiChromaVanna(ChromaDB_VectorStore, OpenAI_Chat):
             ext_llm_response = self.extract_sql(llm_response)
             sql_result = self.run_sql(ext_llm_response)
 
-            print(sql_result)
+            system_message = (
+                "You are a consultant in a insurance company. Given question and prev_result, you add brief instruction before or after the prev_result to help the user understand better. "
+                "NEVER REVISE THE prev_result. The information is a must to shown. "
+                "Response only in traditional chinese (zh-TW). "
+            )
+
+            if "精準行銷" in question and not sql_result.empty:
+                self.log(
+                    title="SQL Response is empty",
+                    message=f"Since 精準行銷 in {question} and sql result DF {sql_result} is empty, try to let post message show true for question",
+                )
+                system_message += "Since prev_result is empty, only add '是，他在精準行銷名單裡。推薦銷售切入點如下： \n' before the prev_result."
 
             inst_result = self.submit_prompt(
                 [
                     self.system_message(
-                        # "You are a consultant in a insurance company. Given question and prev_result, you add brief instruction before or after the prev_result to help the user understand better."
-                        # "===Response Guidelines \n"
-                        # "1. The prev_result must be shown and do not revise the content. \n"
-                        # "2. If the question contains more than one question and the prev_result is not null, then assume the previous question is positive and answer. \n"
-                        # "3. Give advise to the person in the user's question, not the user itself. \n"
-                        # "4. Response only in traditional chinese (zh-TW)"
-                        # "5. Do not repeat the question when you response."
-                        "You are a consultant in a insurance company. Given question and prev_result, you add brief instruction before or after the prev_result to help the user understand better."
-                        "NEVER REVISE THE prev_result. The information is a must to shown. "
-                        "Response only in traditional chinese (zh-TW). "
-                        # "Do not repeat the question when you response. "
-                        # "Give advise to the person in the user's question, not the user itself. "
+                        system_message
+                        # # "You are a consultant in a insurance company. Given question and prev_result, you add brief instruction before or after the prev_result to help the user understand better."
+                        # # "===Response Guidelines \n"
+                        # # "1. The prev_result must be shown and do not revise the content. \n"
+                        # # "2. If the question contains more than one question and the prev_result is not null, then assume the previous question is positive and answer. \n"
+                        # # "3. Give advise to the person in the user's question, not the user itself. \n"
+                        # # "4. Response only in traditional chinese (zh-TW)"
+                        # # "5. Do not repeat the question when you response."
+                        # "You are a consultant in a insurance company. Given question and prev_result, you add brief instruction before or after the prev_result to help the user understand better. "
+                        # "NEVER REVISE THE prev_result. The information is a must to shown. "
+                        # "Response only in traditional chinese (zh-TW). "
+                        # # "Do not repeat the question when you response. "
+                        # # "Give advise to the person in the user's question, not the user itself. "
                     )
                 ]
                 + [
@@ -249,7 +265,7 @@ class OpenaiChromaVanna(ChromaDB_VectorStore, OpenAI_Chat):
             gen_sql=False,
             **kwargs,
         )
-        print(f"{prompt=}")
+        self.log(title="Prompt", message=prompt)
         llm_response = self.submit_prompt(prompt, **kwargs)
         self.log(title="LLM Response", message=llm_response)
 
@@ -321,6 +337,7 @@ class OllamaChromaVanna(ChromaDB_VectorStore, Ollama):
                 "4. Please use the most relevant table(s). \n"
                 "5. If the question has been asked and answered before, please repeat the answer exactly as it was given before. \n"
                 "6. Column names are traditional chinese (zh-TW), neither simplified chinese nor english is allowed. \n"
+                "7. If user mentions 王先生, then the user is talking about 王東明 \n"
             )
         else:
             initial_prompt += (
@@ -328,7 +345,11 @@ class OllamaChromaVanna(ChromaDB_VectorStore, Ollama):
                 "1. generate result based on the information related. \n"
                 "2. If the question has been asked and answered before, please repeat the answer exactly as it was given before. \n"
                 "3. Response only in traditional chinese (zh-TW). \n"
+                "4. If user mentions 王先生, then the user is talking about 王東明 \n"
             )
+
+        if any(text for text in ["mpos", "bbs"] if text in question.lower()):
+            initial_prompt += "5. Add '好的，已幫您紀錄完成' after the answer if and only if the question mentioned 'mPOS'."
 
         message_log = [self.system_message(initial_prompt)]
 
@@ -426,31 +447,34 @@ class OllamaChromaVanna(ChromaDB_VectorStore, Ollama):
             ext_llm_response = self.extract_sql(llm_response)
             sql_result = self.run_sql(ext_llm_response)
 
-            print(sql_result)
+            system_message = (
+                "You are a consultant in a insurance company. Given question and prev_result, you add brief instruction before or after the prev_result to help the user understand better. "
+                "NEVER REVISE THE prev_result. The information is a must to shown. "
+                "The instruction and the prev_result should always has a new line between."
+                "NEVER show the word 'prev_result' or 'prev_result:'. "
+                "Response only in traditional chinese (zh-TW). "
+            )
+
+            if "精準行銷" in question and not sql_result.empty:
+                self.log(
+                    title="SQL Response is empty",
+                    message=f"Since 精準行銷 in {question} and sql result DF {sql_result} is empty, try to let post message show true for question",
+                )
+                system_message += "Since prev_result is empty, only add '是，他在精準行銷名單裡。推薦銷售切入點如下： \n' before the prev_result."
 
             inst_result = self.submit_prompt(
-                [
-                    self.system_message(
-                        # "You are a consultant in a insurance company. Given question and prev_result, you add brief instruction before or after the prev_result to help the user understand better."
-                        # "===Response Guidelines \n"
-                        # "1. The prev_result must be shown and do not revise the content. \n"
-                        # "2. If the question contains more than one question and the prev_result is not null, then assume the previous question is positive and answer. \n"
-                        # "3. Give advise to the person in the user's question, not the user itself. \n"
-                        # "4. Response only in traditional chinese (zh-TW)"
-                        # "5. Do not repeat the question when you response."
-                        "You are a consultant in a insurance company. Given question and prev_result, you add brief instruction before or after the prev_result to help the user understand better."
-                        "NEVER REVISE THE prev_result. The information is a must to shown. "
-                        "Response only in traditional chinese (zh-TW). "
-                        # "Do not repeat the question when you response. "
-                        # "Give advise to the person in the user's question, not the user itself. "
-                    )
-                ]
+                [self.system_message(system_message)]
                 + [
                     self.user_message(
                         f"question: {question}, prev_result: {sql_result.to_markdown()}"
                     )
                 ]
             )
+
+            if "prev_result" in inst_result:
+                inst_result = re.sub(
+                    "(prev_result: |prev_result:|prev_result)", "", inst_result
+                )
 
             return inst_result
 
@@ -493,7 +517,7 @@ class OllamaChromaVanna(ChromaDB_VectorStore, Ollama):
             gen_sql=False,
             **kwargs,
         )
-        print(f"{prompt=}")
+        self.log(title="Prompt", message=prompt)
         llm_response = self.submit_prompt(prompt, **kwargs)
         self.log(title="LLM Response", message=llm_response)
 
