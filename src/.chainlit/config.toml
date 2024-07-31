@@ -39,9 +39,9 @@ auto_tag_thread = true
     # Threshold for audio recording
     min_decibels = -45
     # Delay for the user to start speaking in MS
-    initial_silence_timeout = 1000
+    initial_silence_timeout = 1600
     # Delay for the user to continue speaking in MS. If the user stops speaking for this duration, the recording will stop.
-    silence_timeout = 1500
+    silence_timeout = 1400
     # Above this duration (MS), the recording will forcefully stop.
     max_duration = 15000
     # Duration of the audio chunks in MS
@@ -62,7 +62,7 @@ name = "智能銷售助手"
 default_collapse_content = true
 
 # Hide the chain of thought details from the user in the UI.
-hide_cot = false
+hide_cot = true
 
 # Link to your github repo. This will add a github button in the UI's header.
 github = "https://github.com/anan0329/agent-chat-sim"
